@@ -10,6 +10,8 @@ export const authApi = {
   getLoginUrl: () => api.get<{ authUrl: string }>('/auth/login'),
   getMe: () => api.get('/auth/me'),
   logout: () => api.post('/auth/logout'),
+  devLogin: (name: string, email: string, role: string) =>
+    api.post('/auth/dev-login', { name, email, role }),
 };
 
 // Agencies

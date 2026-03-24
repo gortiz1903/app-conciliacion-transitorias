@@ -104,6 +104,59 @@ router.get('/me', async (req: Request, res: Response) => {
   res.json({ user: { ...user, agencies } });
 });
 
+// Dev login — generic entry without Microsoft SSO (development only)
+router.post('/dev-login', async (req: Request, res: Response) => {
+  if (env.nodeEnv === 'production') {
+    res.status(404).json({ error: 'Not available' });
+    return;
+  }
+
+  const { name, email, role } = req.body;
+  if (!name || !email) {
+    res.status(400).json({ error: 'name and email are required' });
+    return;
+  }
+
+  const validRole = ['ADMIN', 'CONCILIADOR', 'AUDITOR'].includes(role) ? role : 'ADMIN';
+
+  // Upsert dev user
+  let user = await db('users').where('email', email).first();
+  if (user) {
+    [user] = await db('users')
+      .where('email', email)
+      .update({ display_name: name, role: validRole, updated_at: db.fn.now() })
+      .returning('*');
+  } else {
+    [user] = await db('users')
+      .insert({
+        azure_oid: `dev-${Date.now()}`,
+        email,
+        display_name: name,
+        role: validRole,
+      })
+      .returning('*');
+
+    // Assign all agencies to dev user
+    const agencies = await db('agencies').select('id');
+    if (agencies.length > 0) {
+      await db('user_agency_assignments').insert(
+        agencies.map((a: any) => ({ user_id: user.id, agency_id: a.id }))
+      );
+    }
+  }
+
+  (req.session as any).userId = user.id;
+  (req.session as any).userRole = user.role;
+
+  // Get assigned agencies
+  const agencies = await db('user_agency_assignments')
+    .join('agencies', 'agencies.id', 'user_agency_assignments.agency_id')
+    .where('user_agency_assignments.user_id', user.id)
+    .select('agencies.*');
+
+  res.json({ user: { ...user, agencies } });
+});
+
 // Logout
 router.post('/logout', (req: Request, res: Response) => {
   req.session.destroy((err) => {
