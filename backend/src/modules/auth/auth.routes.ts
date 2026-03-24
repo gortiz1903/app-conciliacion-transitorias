@@ -79,7 +79,11 @@ router.get('/callback', async (req: Request, res: Response) => {
 
 // Get current user
 router.get('/me', async (req: Request, res: Response) => {
-  const userId = (req.session as any)?.userId;
+  // Try session first, then dev header
+  let userId = (req.session as any)?.userId;
+  if (!userId && env.nodeEnv !== 'production') {
+    userId = req.headers['x-dev-user-id'] as string;
+  }
   if (!userId) {
     res.status(401).json({ error: 'Not authenticated' });
     return;

@@ -5,6 +5,15 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Dev auth: send user ID header for session-less dev mode
+api.interceptors.request.use((config) => {
+  const devUserId = localStorage.getItem('dev_user_id');
+  if (devUserId) {
+    config.headers['x-dev-user-id'] = devUserId;
+  }
+  return config;
+});
+
 // Auth
 export const authApi = {
   getLoginUrl: () => api.get<{ authUrl: string }>('/auth/login'),

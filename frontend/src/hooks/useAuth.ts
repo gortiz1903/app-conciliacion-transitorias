@@ -5,6 +5,8 @@ import type { User } from '../types';
 export function useAuth() {
   const queryClient = useQueryClient();
 
+  const hasDevUser = !!localStorage.getItem('dev_user_id');
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
@@ -12,6 +14,8 @@ export function useAuth() {
       return res.data.user as User;
     },
     retry: false,
+    // Only try to fetch if we have a dev user or a session
+    enabled: hasDevUser || undefined,
   });
 
   const login = async () => {
@@ -20,7 +24,8 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    await authApi.logout();
+    localStorage.removeItem('dev_user_id');
+    try { await authApi.logout(); } catch { /* ignore */ }
     queryClient.clear();
     window.location.href = '/login';
   };

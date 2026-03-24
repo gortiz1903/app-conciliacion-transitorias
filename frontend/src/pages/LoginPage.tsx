@@ -23,9 +23,11 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      await authApi.devLogin(name, email, role);
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      window.location.href = '/dashboard';
+      const res = await authApi.devLogin(name, email, role);
+      // Store user ID for dev auth header
+      localStorage.setItem('dev_user_id', res.data.user.id);
+      // Set user data directly in query cache
+      queryClient.setQueryData(['auth', 'me'], res.data.user);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al iniciar sesion');
     } finally {
