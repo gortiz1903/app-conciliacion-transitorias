@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import session from 'express-session';
+import path from 'path';
 import { env } from './config/env';
 import logger from './config/logger';
 import { errorHandler } from './middleware/errorHandler';
@@ -22,7 +23,9 @@ import auditRoutes from './modules/audit/audit.routes';
 const app = express();
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 app.use(compression());
 app.use(cors({
   origin: env.frontendUrl,
@@ -60,10 +63,22 @@ app.use('/api/reconciliation', reconciliationRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/audit', auditRoutes);
 
+// Serve frontend static files
+const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDist));
+
+// SPA fallback — serve index.html for all non-API routes
+app.get('*', (_req, res, next) => {
+  if (_req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
 // Error handler
 app.use(errorHandler);
 
-app.listen(env.port, () => {
+app.listen(env.port, '0.0.0.0', () => {
   logger.info(`Server running on port ${env.port} in ${env.nodeEnv} mode`);
 });
 
