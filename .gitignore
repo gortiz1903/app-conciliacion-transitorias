@@ -1,26 +1,37 @@
-﻿# Python
+# Dependencies
+node_modules/
+
+# Build
+backend/dist/
+frontend/dist/
+
+# Python (legacy)
 __pycache__/
 *.py[cod]
 *.egg-info/
-.env
 .venv/
 env/
-build/
-dist/
-.ipynb_checkpoints/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
 
-# Editores / OS
+# Environment
+.env
+backend/.env
+
+# IDE / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# Streamlit / secretos
+# Data files
+*.xlsx
+*.csv
+
+# Logs
+*.log
+
+# Streamlit (legacy)
 .streamlit/secrets.toml
 
-# Datos pesados (ajusta según tu repo)
-# data/
-# *.xlsx
+# Temp
+tmp/
+uploads/
