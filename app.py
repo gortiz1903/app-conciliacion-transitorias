@@ -4,12 +4,22 @@
 #   streamlit run app.py
 
 import re
+import sys
 from io import BytesIO
 from typing import List, Dict, Any
 
 import numpy as np
 import pandas as pd
 import streamlit as st
+from streamlit import runtime
+
+# Si se ejecuta con "python app.py" (o doble clic), Streamlit no levanta su
+# servidor y el navegador queda en blanco. Relanzamos con "streamlit run".
+if not runtime.exists():
+    from streamlit.web import cli as stcli
+
+    sys.argv = ["streamlit", "run", sys.argv[0]]
+    sys.exit(stcli.main())
 
 st.set_page_config(page_title="Conciliación Transitorias", layout="wide")
 
@@ -223,7 +233,7 @@ with tab_pend:
             else:
                 st.session_state.manual_pairs.append(Pair(sel_rid_deb, sel_rid_hab, "MANUAL"))
                 st.success("Pareados y movidos a 'Conciliados'.")
-                st.experimental_rerun()
+                st.rerun()
 
     colA, colB = st.columns(2)
     with colA:
@@ -231,12 +241,12 @@ with tab_pend:
             if st.session_state.manual_pairs:
                 st.session_state.manual_pairs.pop()
                 st.info("Se deshizo el último pareo manual.")
-                st.experimental_rerun()
+                st.rerun()
     with colB:
         if st.button("Reiniciar pareos manuales"):
             st.session_state.manual_pairs = []
             st.info("Pareos manuales reiniciados.")
-            st.experimental_rerun()
+            st.rerun()
 
 # ---- Tab Conciliados ----
 with tab_conc:

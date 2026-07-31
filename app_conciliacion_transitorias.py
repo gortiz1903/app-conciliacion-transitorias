@@ -12,6 +12,7 @@
 
 import io
 import math
+import sys
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 
@@ -20,6 +21,7 @@ import pandas as pd
 
 try:
     import streamlit as st
+    from streamlit import runtime
 except Exception:
     raise SystemExit("Esta app requiere Streamlit. Instala con: pip install streamlit pandas numpy")
 
@@ -341,4 +343,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if runtime.exists():
+        main()
+    else:
+        # Ejecutado con "python app_conciliacion_transitorias.py": sin el
+        # servidor de Streamlit la pantalla queda en blanco. Relanzamos.
+        from streamlit.web import cli as stcli
+
+        sys.argv = ["streamlit", "run", sys.argv[0]]
+        sys.exit(stcli.main())
